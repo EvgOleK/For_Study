@@ -1,0 +1,230 @@
+#include <iostream>
+#include <cstdlib>
+#include <algorithm>
+#include <cmath>
+
+void EnterSize(int32_t&, bool&);
+void EnterChoice(int16_t&, bool&);
+void FillArray(double*, int32_t, bool);
+void PrintArray(double*, int32_t);
+void CountDistinctElements(double*, int32_t);
+void SumBetweenNegatives(double*, int32_t);
+void CompressArray(double*, int32_t);
+
+
+int main()
+{
+    const int MAX_SIZE = 100;
+    int32_t size{};
+    bool check = false;
+    int16_t choice{};
+
+    EnterSize(size, check);
+    while (!check)
+    {
+        EnterSize(size, check);
+    }
+    EnterChoice(choice, check);
+    while (!check)
+    {
+        EnterChoice(choice, check);
+    }
+
+    double  StaticArray[MAX_SIZE];
+    double* DynamicArray = new double[size];
+
+    FillArray(StaticArray, size, choice == 1);
+    FillArray(DynamicArray, size, choice == 1);
+
+    std::cout << "Static array: ";
+    PrintArray(StaticArray, size);
+    std::cout << "Dynamic array: ";
+    PrintArray(DynamicArray, size);
+
+    std::cout << "The number of different elements in static array: ";
+    CountDistinctElements(StaticArray, size);
+    std::cout << "The number of different elements in dynamic array: ";
+    CountDistinctElements(DynamicArray, size);
+
+    std::cout << "The sum of the array elements located between the first and last negative elements in static array: ";
+    SumBetweenNegatives(StaticArray, size);
+    std::cout << "The sum of the array elements located between the first and last negative elements in dynamic array: ";
+    SumBetweenNegatives(DynamicArray, size);
+    
+    std::cout << "Compressed static array: ";
+    CompressArray(StaticArray, size);
+    std::cout << "Compressed dynamic array: ";
+    CompressArray(DynamicArray, size);
+
+    delete[] DynamicArray;
+    return 0;
+}
+
+
+void EnterSize(int32_t& size, bool& check)
+{
+    std::cout << "Enter size (no more than 100) : ";
+    std::cin >> size;
+
+    if (size < 0 || size >= 0 )
+    {
+        if (size < 1 || size > 100)
+        {
+            check = false;
+            std::cout << "Error size.\n";
+            std::cout << "Please try again.\n"; 
+        }
+        else
+        {    
+            size = static_cast<int>(size);
+            check = true;
+            std::cout << "The size of your array: " << size << "\n";
+
+        }
+        
+    }
+    else
+    {
+        check = false;
+        std::cout << "Error size.\n";
+        std::cout << "Please try again.\n";
+
+    }
+
+}
+
+void EnterChoice(int16_t& choice, bool& check)
+{
+    std::cout << "Choose a way to fill in the array  (0 - manually, 1 - auto): ";
+    std::cin >> choice;
+
+    if (choice == 0 || choice == 1)
+    {
+        check = true;
+    }
+    else
+    {
+        check = false;
+        std::cout << "Error choice.\n";
+        std::cout << "Please try again.\n";
+    }
+
+}
+
+void FillArray(double* array, int32_t size, bool useRandom)
+{
+    if (useRandom)
+    {
+        double LowerLimit{}, UpperLimit{};
+        std::cout << "Enter interval (Lower Upper): ";
+        std::cin >> LowerLimit >> UpperLimit;
+
+        if (LowerLimit > UpperLimit)
+        {
+            std::swap(LowerLimit, UpperLimit);
+        }
+
+
+        for (int32_t i{}; i < size; ++i)
+        {
+            array[i] = LowerLimit + (static_cast<double>(rand()) / RAND_MAX) * (UpperLimit - LowerLimit);
+        }
+    }
+    else
+    {
+        std::cout << "Enter elements of array: ";
+        for (int32_t i{}; i < size; ++i)
+        {
+            std::cin >> array[i];
+        }
+    }
+}
+
+void PrintArray(double* array, int32_t size)
+{
+    for (int32_t i{}; i < size; ++i)
+    {
+        std::cout << array[i] << " ";
+    }
+    std::cout << "\n";
+}
+
+void CountDistinctElements(double* arr, int32_t size)
+{
+    int32_t count{};
+    for (int32_t i{}; i < size; ++i)
+    {
+        bool IsDistinct = true;
+        for (int32_t j{}; j < i; ++j)
+        {
+            if (arr[i] == arr[j])
+            {
+                IsDistinct = false;
+                break;
+            }
+        }
+        if (IsDistinct)
+        {
+            ++count;
+        }
+    }
+    std::cout << count << "\n";
+}
+
+void SumBetweenNegatives(double* arr, int32_t size)
+{
+    int32_t FirstNeg = - 1;
+    int32_t LastNeg = -1;
+
+    for (int32_t i{}; i < size; ++i)
+    {
+        if (arr[i] < 0)
+        {
+            FirstNeg = i;
+            break;
+        }
+    }
+    for (int32_t i = size - 1; i >= 0; --i)
+    {
+        if (arr[i] < 0)
+        {
+            LastNeg = i;
+            break;
+        }
+    }
+    if (FirstNeg == -1 || LastNeg == -1 || FirstNeg == LastNeg)
+    {
+        std::cout << "There are no such elements in the specified array.\n";
+    }
+
+    double sum = 0.0;
+    for (int32_t i = FirstNeg + 1; i < LastNeg; ++i)
+    {
+        sum += arr[i];
+    }
+
+    std::cout << sum << "\n";
+} 
+
+void CompressArray(double* arr, int32_t size) 
+{
+    double X{};
+    std::cout << "Enter an element whose value should exceed the array elements: ";
+    std::cin >> X;
+
+    int32_t j{}; 
+    for (int32_t i{}; i < size; ++i)
+    {
+        if (std::abs(arr[i]) > X)
+        {
+            arr[j] = arr[i];
+            ++j;
+        }
+    }
+    for (int32_t i = j; i < size; ++i) 
+    {
+        arr[i] = 0;
+    }
+
+    PrintArray(arr, size);
+}
