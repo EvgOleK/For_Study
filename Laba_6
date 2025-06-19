@@ -1,0 +1,129 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <cstring>
+#include <windows.h>
+
+const int16_t MAXLEN{ 300 };
+
+bool IsDelimiter(char c, const char* delimiters)
+{
+    for (int32_t i{ 0 }; delimiters[i] != '\0'; ++i)
+    {
+        if (c == delimiters[i])
+            return true;
+    }
+    return false;
+}
+
+void GetInput(char* str, const char* text)
+{
+    std::cout << text;
+    std::cin.getline(str, MAXLEN + 1);
+}
+
+void FindLongestWords(const char* str, const char* delimiters, char* result)
+{
+    int32_t maxLength{ 0 };
+    int32_t foundCount{ 0 };
+    bool inWord{ false };
+    const char* currentWordStart{ nullptr };
+    int32_t currentLength{ 0 };
+    int32_t resultPos{ 0 };
+
+    for (int16_t i{ 0 }; str[i] != '\0'; ++i)
+    {
+        if (!IsDelimiter(str[i], delimiters))
+        {
+            if (!inWord)
+            {
+                inWord = true;
+                currentWordStart = &str[i];
+                currentLength = 1;
+            }
+            else
+            {
+                ++currentLength;
+            }
+        }
+        else if (inWord)
+        {
+            if (currentLength > maxLength)
+            {
+                maxLength = currentLength;
+                resultPos = 0;
+                foundCount = 0;
+            }
+
+            if (currentLength == maxLength)
+            {
+                if (foundCount > 0)
+                {
+                    result[resultPos++] = ';';
+                    result[resultPos++] = ' ';
+                }
+                std::memcpy(result + resultPos, currentWordStart, currentLength);
+                resultPos += currentLength;
+                ++foundCount;
+            }
+            inWord = false;
+        }
+    }
+
+    if (inWord)
+    {
+        if (currentLength > maxLength)
+        {
+            maxLength = currentLength;
+            resultPos = 0;
+            foundCount = 0;
+        }
+
+        if (currentLength == maxLength)
+        {
+            if (foundCount > 0)
+            {
+                result[resultPos++] = ';';
+                result[resultPos++] = ' ';
+            }
+            std::memcpy(result + resultPos, currentWordStart, currentLength);
+            resultPos += currentLength;
+        }
+    }
+
+    result[resultPos] = '\0';
+}
+
+int main()
+{
+    SetConsoleOutputCP(1251);
+    SetConsoleCP(1251);
+
+    char str[MAXLEN + 1]{};
+    char delimiters[MAXLEN + 1]{};
+    char result[MAXLEN]{};
+
+    GetInput(str, "Введите строку: ");
+    if (str[0] == '\0')
+    {
+        std::cout << "Ошибка: Строка пуста. Задача невозможна.\n";
+        return 1;
+    }
+
+    GetInput(delimiters, "Введите символы-разделители: ");
+    if (delimiters[0] == '\0')
+    {
+        std::strcpy(delimiters, " ");
+    }
+
+    FindLongestWords(str, delimiters, result);
+
+    if (result[0] == '\0')
+    {
+        std::cout << "Ошибка: В строке не содержится слов. Задача невозможна.\n";
+        return 1;
+    }
+
+    std::cout << result << "\n";
+
+    return 0;
+}
