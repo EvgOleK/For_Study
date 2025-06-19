@@ -1,0 +1,159 @@
+#include <iostream>
+#include <cstdlib>
+
+void FillMatrixFromKeyboard(int32_t** matrix, int32_t rows, int32_t cols)
+{
+    for (int32_t i{}; i < rows; ++i)
+    {
+        std::cout << "Введите " << cols << " элементов для строки " << (i + 1) << ": ";
+        for (int32_t j{}; j < cols; ++j)
+        {
+            std::cin >> matrix[i][j];
+        }
+    }
+}
+
+void FillMatrixRandomly(int32_t** matrix, int32_t rows, int32_t cols, int32_t lower, int32_t upper)
+{
+    for (int32_t i{}; i < rows; ++i)
+    {
+        for (int32_t j{}; j < cols; ++j)
+        {
+            matrix[i][j] = lower + std::rand() % (upper - lower + 1);
+        }
+    }
+}
+
+void PrintMatrix(int32_t** matrix, int32_t rows, int32_t cols)
+{
+    for (int32_t i{}; i < rows; ++i)
+    {
+        for (int32_t j{}; j < cols; ++j)
+        {
+            std::cout << matrix[i][j] << "\t";
+        }
+        std::cout << "\n";
+    }
+}
+
+int32_t SumRowsWithoutZero(int32_t** matrix, int32_t rows, int32_t cols, bool& found)
+{
+    int32_t totalSum{};
+    found = false;
+    for (int32_t i{}; i < rows; ++i)
+    {
+        bool noZero{ true };
+        int32_t rowSum{};
+        for (int32_t j{}; j < cols; ++j)
+        {
+            if (matrix[i][j] == 0)
+            {
+                noZero = false;
+                break;
+            }
+            rowSum += matrix[i][j];
+        }
+        if (noZero) 
+        {
+            found = true;
+            totalSum += rowSum;
+        }
+    }
+    return totalSum;
+}
+
+
+void SwapColumns(int32_t** matrix, int32_t rows, int32_t cols)
+{
+    for (int32_t i{}; i < rows; ++i)
+    {
+        for (int32_t j{}; j < cols / 2; ++j)
+        {
+            int32_t temp = matrix[i][j];
+            matrix[i][j] = matrix[i][cols - j - 1];
+            matrix[i][cols - j - 1] = temp;
+        }
+    }
+}
+
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+    int32_t rows{}, cols{};
+
+    std::cout << "Введите количество строк: ";
+    std::cin >> rows;
+    std::cout << "Введите количество столбцов: ";
+    std::cin >> cols;
+
+    if (rows <= 0 || cols <= 0)
+    {
+        std::cout << "Ошибка: недопустимые размеры матрицы.\n";
+        return 1;
+    }
+
+    int32_t** matrix = new int32_t * [rows];
+    for (int32_t i{}; i < rows; ++i)
+    {
+        matrix[i] = new int32_t[cols];
+    }
+
+    int32_t fillMethod{};
+    std::cout << "Выберите способ заполнения матрицы:\n";
+    std::cout << "1 - Ввод с клавиатуры\n";
+    std::cout << "2 - Заполнение случайными числами\n";
+    std::cout << "Ваш выбор: ";
+    std::cin >> fillMethod;
+
+    if (fillMethod == 1)
+    {
+        std::cout << "Ввод элементов матрицы с клавиатуры:\n";
+        FillMatrixFromKeyboard(matrix, rows, cols);
+    }
+    else if (fillMethod == 2) {
+        int32_t lower{}, upper{};
+        std::cout << "Введите нижнюю границу интервала случайных чисел: ";
+        std::cin >> lower;
+        std::cout << "Введите верхнюю границу интервала случайных чисел: ";
+        std::cin >> upper;
+        if (lower > upper)
+        {
+            std::swap(lower, upper);
+        }
+        FillMatrixRandomly(matrix, rows, cols, lower, upper);
+    }
+    else {
+        std::cout << "Ошибка: неверный выбор способа заполнения.\n";
+        for (int32_t i{}; i < rows; ++i)
+        {
+            delete[] matrix[i];
+        }
+        delete[] matrix;
+        return 1;
+    }
+
+    std::cout << "\nИсходная матрица:\n";
+    PrintMatrix(matrix, rows, cols);
+
+    bool rowFound = false;
+    int32_t sum = SumRowsWithoutZero(matrix, rows, cols, rowFound);
+    if (rowFound)
+    {
+        std::cout << "\nСумма элементов строк, не содержащих нулей: " << sum << "\n";
+    }
+    else {
+        std::cout << "\nНет строк, не содержащих нулей.\n";
+    }
+
+    SwapColumns(matrix, rows, cols);
+    std::cout << "\nМатрица после перестановки столбцов:\n";
+    PrintMatrix(matrix, rows, cols);
+
+    for (int32_t i{}; i < rows; ++i)
+    {
+        delete[] matrix[i];
+    }
+    delete[] matrix;
+
+    return 0;
+}
