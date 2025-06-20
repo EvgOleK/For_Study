@@ -1,0 +1,512 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+#include <cstdint>
+#include <windows.h>
+
+double* readDoubleArrayFromConsole(int32_t& size)
+{
+    std::cout << "Введите количество элементов: ";
+    std::cin >> size;
+    double* arr = new double[size];
+    for (int32_t i = 0; i < size; ++i)
+    {
+        std::cout << "Элемент " << (i + 1) << ": ";
+        std::cin >> arr[i];
+    }
+    return arr;
+}
+
+double* readDoubleArrayFromFile(const std::string& filename, int32_t& size)
+{
+    std::ifstream in(filename.c_str());
+    if (!in)
+    {
+        size = 0;
+        return nullptr;
+    }
+    double dummy = 0;
+    int32_t count = 0;
+    while (in >> dummy)
+    {
+        ++count;
+    }
+    in.clear();
+    in.seekg(0, std::ios::beg);
+    double* arr = new double[count];
+    for (int32_t i = 0; i < count; ++i)
+    {
+        in >> arr[i];
+    }
+    size = count;
+    return arr;
+}
+
+void printDoubleArrayToConsole(const double* arr, int32_t size)
+{
+    for (int32_t i = 0; i < size; ++i)
+    {
+        std::cout << arr[i] << " ";
+    }
+    std::cout << "\n";
+}
+
+void writeDoubleArrayToFile(const double* arr, int32_t size, const std::string& filename)
+{
+    std::ofstream out(filename.c_str());
+    if (!out)
+    {
+        std::cout << "Ошибка открытия файла для записи.\n";
+        return;
+    }
+    for (int32_t i = 0; i < size; ++i)
+    {
+        out << arr[i] << " ";
+    }
+    out << "\n";
+}
+
+int32_t partition(double* arr, int32_t low, int32_t high, bool ascending)
+{
+    double pivot = arr[high];
+    int32_t i = low - 1;
+    for (int32_t j = low; j < high; ++j)
+    {
+        if ((ascending && arr[j] <= pivot) || (!ascending && arr[j] >= pivot))
+        {
+            ++i;
+            double temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+    double temp = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = temp;
+    return i + 1;
+}
+
+void quickSort(double* arr, int32_t low, int32_t high, bool ascending)
+{
+    if (low < high)
+    {
+        int32_t pi = partition(arr, low, high, ascending);
+        quickSort(arr, low, pi - 1, ascending);
+        quickSort(arr, pi + 1, high, ascending);
+    }
+}
+
+void insertionSort(double* arr, int32_t size, bool ascending)
+{
+    for (int32_t i = 1; i < size; ++i)
+    {
+        double key = arr[i];
+        int32_t j = i - 1;
+        while (j >= 0 && ((ascending && arr[j] > key) || (!ascending && arr[j] < key)))
+        {
+            arr[j + 1] = arr[j];
+            --j;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+void selectionSort(double* arr, int32_t size, bool ascending)
+{
+    for (int32_t i = 0; i < size - 1; ++i)
+    {
+        int32_t selectedIndex = i;
+        for (int32_t j = i + 1; j < size; ++j)
+        {
+            if ((ascending && arr[j] < arr[selectedIndex]) || (!ascending && arr[j] > arr[selectedIndex]))
+            {
+                selectedIndex = j;
+            }
+        }
+        double temp = arr[i];
+        arr[i] = arr[selectedIndex];
+        arr[selectedIndex] = temp;
+    }
+}
+
+void merge(double* arr, int32_t left, int32_t mid, int32_t right, bool ascending)
+{
+    int32_t n1 = mid - left + 1;
+    int32_t n2 = right - mid;
+    double* L = new double[n1];
+    double* R = new double[n2];
+    for (int32_t i = 0; i < n1; ++i)
+    {
+        L[i] = arr[left + i];
+    }
+    for (int32_t j = 0; j < n2; ++j)
+    {
+        R[j] = arr[mid + 1 + j];
+    }
+    int32_t i = 0;
+    int32_t j = 0;
+    int32_t k = left;
+    while (i < n1 && j < n2)
+    {
+        if ((ascending && L[i] <= R[j]) || (!ascending && L[i] >= R[j]))
+        {
+            arr[k] = L[i];
+            ++i;
+        }
+        else
+        {
+            arr[k] = R[j];
+            ++j;
+        }
+        ++k;
+    }
+    while (i < n1)
+    {
+        arr[k] = L[i];
+        ++i;
+        ++k;
+    }
+    while (j < n2)
+    {
+        arr[k] = R[j];
+        ++j;
+        ++k;
+    }
+    delete[] L;
+    delete[] R;
+}
+
+void mergeSort(double* arr, int32_t left, int32_t right, bool ascending)
+{
+    if (left < right)
+    {
+        int32_t mid = left + (right - left) / 2;
+        mergeSort(arr, left, mid, ascending);
+        mergeSort(arr, mid + 1, right, ascending);
+        merge(arr, left, mid, right, ascending);
+    }
+}
+
+void bubbleSort(double* arr, int32_t size, bool ascending)
+{
+    bool swapped = true;
+    while (swapped)
+    {
+        swapped = false;
+        for (int32_t i = 1; i < size; ++i)
+        {
+            if ((ascending && arr[i - 1] > arr[i]) || (!ascending && arr[i - 1] < arr[i]))
+            {
+                double temp = arr[i - 1];
+                arr[i - 1] = arr[i];
+                arr[i] = temp;
+                swapped = true;
+            }
+        }
+    }
+}
+
+int compareFractionDigits(const void* a, const void* b)
+{
+    double da = *(const double*)a;
+    double db = *(const double*)b;
+    int32_t countA = 0;
+    int32_t countB = 0;
+    std::string sA = std::to_string(da);
+    std::size_t posA = sA.find('.');
+    if (posA != std::string::npos)
+    {
+        std::string fracA = sA.substr(posA + 1);
+        while (!fracA.empty() && fracA.back() == '0')
+        {
+            fracA.pop_back();
+        }
+        countA = static_cast<int32_t>(fracA.size());
+    }
+    std::string sB = std::to_string(db);
+    std::size_t posB = sB.find('.');
+    if (posB != std::string::npos)
+    {
+        std::string fracB = sB.substr(posB + 1);
+        while (!fracB.empty() && fracB.back() == '0')
+        {
+            fracB.pop_back();
+        }
+        countB = static_cast<int32_t>(fracB.size());
+    }
+    if (countA < countB)
+    {
+        return 1;
+    }
+    else if (countA > countB)
+    {
+        return -1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void qsortSort(double* arr, int32_t size)
+{
+    qsort(arr, size, sizeof(double), compareFractionDigits);
+}
+
+void sortDoubleArray(double* arr, int32_t size, int32_t method, bool ascending)
+{
+    switch (method)
+    {
+    case 1:
+        quickSort(arr, 0, size - 1, ascending);
+        break;
+    case 2:
+        insertionSort(arr, size, ascending);
+        break;
+    case 3:
+        selectionSort(arr, size, ascending);
+        break;
+    case 4:
+        mergeSort(arr, 0, size - 1, ascending);
+        break;
+    case 5:
+        bubbleSort(arr, size, ascending);
+        break;
+    case 6:
+        qsortSort(arr, size);
+        break;
+    default:
+        break;
+    }
+}
+
+struct Student
+{
+    std::string firstName;
+    std::string lastName;
+    int32_t course;
+    int32_t group;
+    double marks[5];
+};
+
+double averageMark(const Student& s)
+{
+    double sum = 0;
+    for (int32_t i = 0; i < 5; ++i)
+    {
+        sum += s.marks[i];
+    }
+    return sum / 5.0;
+}
+
+Student* readStudentsFromConsole(int32_t& count)
+{
+    std::cout << "Введите количество студентов: ";
+    std::cin >> count;
+    Student* arr = new Student[count];
+    for (int32_t i = 0; i < count; ++i)
+    {
+        std::cout << "Студент " << (i + 1) << "\n";
+        std::cout << "Имя: ";
+        std::cin >> arr[i].firstName;
+        std::cout << "Фамилия: ";
+        std::cin >> arr[i].lastName;
+        std::cout << "Курс: ";
+        std::cin >> arr[i].course;
+        std::cout << "Группа: ";
+        std::cin >> arr[i].group;
+        std::cout << "Введите 5 оценок: ";
+        for (int32_t j = 0; j < 5; ++j)
+        {
+            std::cin >> arr[i].marks[j];
+        }
+    }
+    return arr;
+}
+
+Student* readStudentsFromFile(const std::string& filename, int32_t& count)
+{
+    std::ifstream in(filename.c_str());
+    if (!in)
+    {
+        count = 0;
+        return nullptr;
+    }
+    in >> count;
+    Student* arr = new Student[count];
+    for (int32_t i = 0; i < count; ++i)
+    {
+        in >> arr[i].firstName >> arr[i].lastName >> arr[i].course >> arr[i].group;
+        for (int32_t j = 0; j < 5; ++j)
+        {
+            in >> arr[i].marks[j];
+        }
+    }
+    return arr;
+}
+
+void writeStudentsToFile(const Student* arr, int32_t count, const std::string& filename)
+{
+    std::ofstream out(filename.c_str());
+    if (!out)
+    {
+        std::cout << "Ошибка открытия файла для записи.\n";
+        return;
+    }
+    out << count << "\n";
+    for (int32_t i = 0; i < count; ++i)
+    {
+        out << arr[i].firstName << " " << arr[i].lastName << " " << arr[i].course << " " << arr[i].group << " ";
+        for (int32_t j = 0; j < 5; ++j)
+        {
+            out << arr[i].marks[j] << " ";
+        }
+        out << "\n";
+    }
+}
+
+void printStudents(const Student* arr, int32_t count)
+{
+    for (int32_t i = 0; i < count; ++i)
+    {
+        std::cout << "Имя: " << arr[i].firstName << " Фамилия: " << arr[i].lastName << " Курс: " << arr[i].course << " Группа: " << arr[i].group << " Средняя оценка: " << averageMark(arr[i]) << "\n";
+    }
+}
+
+void sortStudents(Student* arr, int32_t count)
+{
+    for (int32_t i = 1; i < count; ++i)
+    {
+        Student key = arr[i];
+        int32_t j = i - 1;
+        while (j >= 0 && averageMark(arr[j]) < averageMark(key))
+        {
+            arr[j + 1] = arr[j];
+            --j;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+int main()
+{
+    SetConsoleOutputCP(1251);
+    SetConsoleCP(1251);
+
+    std::cout << "Выберите режим:\n1. Работа с массивом вещественных чисел\n2. Работа с массивом студентов\n";
+    int32_t mode = 0;
+    std::cin >> mode;
+    if (mode == 1)
+    {
+        std::cout << "Выберите источник данных для массива вещественных чисел:\n1. Данные в файле, обработка массива, вывод на консоль\n2. Данные в консоли, обработка массива, запись в файл\n3. Данные из файла, обработка массива, запись в файл\n";
+        int32_t inputMode = 0;
+        std::cin >> inputMode;
+        double* arr = nullptr;
+        int32_t size = 0;
+        std::string filename;
+        if (inputMode == 1 || inputMode == 3)
+        {
+            std::cout << "Введите имя файла для чтения: ";
+            std::cin >> filename;
+            arr = readDoubleArrayFromFile(filename, size);
+            if (arr == nullptr || size == 0)
+            {
+                std::cout << "Ошибка чтения массива из файла.\n";
+                return 1;
+            }
+        }
+        else if (inputMode == 2)
+        {
+            arr = readDoubleArrayFromConsole(size);
+        }
+        else
+        {
+            std::cout << "Неверный режим ввода.\n";
+            return 1;
+        }
+        std::cout << "Выберите алгоритм сортировки:\n1. Быстрый сорт\n2. Сортировка вставками\n3. Сортировка выбором\n4. Сортировка слиянием\n5. Улучшенная сортировка пузырьком\n6. qsort (по убыванию количества цифр в дробной части числа)\n";
+        int32_t method = 0;
+        std::cin >> method;
+        bool ascending = true;
+        if (method >= 1 && method <= 5)
+        {
+            std::cout << "Выберите порядок сортировки:\n1. По возрастанию\n2. По убыванию\n";
+            int32_t order = 0;
+            std::cin >> order;
+            ascending = (order == 1);
+        }
+        sortDoubleArray(arr, size, method, ascending);
+        if (inputMode == 1)
+        {
+            std::cout << "Отсортированный массив:\n";
+            printDoubleArrayToConsole(arr, size);
+        }
+        else if (inputMode == 2 || inputMode == 3)
+        {
+            std::cout << "Введите имя файла для записи: ";
+            std::cin >> filename;
+            writeDoubleArrayToFile(arr, size, filename);
+            std::cout << "Результат записан в файл.\n";
+        }
+        delete[] arr;
+    }
+    else if (mode == 2)
+    {
+        std::cout << "Выберите источник данных для студентов:\n1. Данные в консоли\n2. Данные в файле\n";
+        int32_t studentMode = 0;
+        std::cin >> studentMode;
+        Student* students = nullptr;
+        int32_t count = 0;
+        std::string filename;
+        if (studentMode == 1)
+        {
+            students = readStudentsFromConsole(count);
+        }
+        else if (studentMode == 2)
+        {
+            std::cout << "Введите имя файла для чтения: ";
+            std::cin >> filename;
+            students = readStudentsFromFile(filename, count);
+            if (students == nullptr || count == 0)
+            {
+                std::cout << "Ошибка чтения студентов из файла.\n";
+                return 1;
+            }
+        }
+        else
+        {
+            std::cout << "Неверный режим ввода студентов.\n";
+            return 1;
+        }
+        sortStudents(students, count);
+        std::cout << "Выберите режим вывода для студентов:\n1. Вывод на консоль\n2. Запись в файл\n";
+        int32_t outputMode = 0;
+        std::cin >> outputMode;
+        if (outputMode == 2)
+        {
+            std::cout << "Введите имя файла для записи: ";
+            std::cin >> filename;
+            writeStudentsToFile(students, count, filename);
+            std::cout << "Данные записаны в файл.\n";
+        }
+        else if (outputMode == 1)
+        {
+            std::cout << "Отсортированный массив студентов (по среднему баллу, по убыванию):\n";
+            printStudents(students, count);
+        }
+        else
+        {
+            std::cout << "Неверный режим вывода студентов.\n";
+            return 1;
+        }
+        delete[] students;
+    }
+    else
+    {
+        std::cout << "Неверный режим.\n";
+        return 1;
+    }
+    return 0;
+}
